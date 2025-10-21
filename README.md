@@ -109,18 +109,21 @@ Ao selecionar uma sugestão, o mapa foca na localização e exibe um marcador.
 Ao clicar em “📍 Pegar minha localização”, o mapa centraliza na posição atual do usuário.
 
 ⚙️ Principais APIs utilizadas
-API	Descrição	Endpoint
-Search Address	Retorna endereços e locais com base em texto de busca.	https://atlas.microsoft.com/search/address/json
-Map Control SDK	Renderiza e controla o mapa interativo.	https://atlas.microsoft.com/sdk/javascript/mapcontrol/3/atlas.min.js
-Geolocation API (Browser)	Obtém a localização do usuário via GPS ou rede.	navigator.geolocation.getCurrentPosition()
-🧩 Possíveis dificuldades encontradas
-Dificuldade	Descrição / Solução
-Autenticação falhou	Ocorre se a chave do Azure Maps não for configurada corretamente. Verifique se foi copiada da aba “Authentication” do portal Azure.
-Erro CORS (bloqueio de requisição)	Pode acontecer ao abrir o arquivo diretamente. Solução: rodar um servidor local (ex: npx http-server).
-Mapas não aparecem	Verifique se o navegador permite execução de JavaScript e se o link do SDK está acessível.
-Geolocalização negada	O navegador precisa de permissão de acesso à localização. Habilitar em “Configurações → Privacidade → Localização”.
-Autocomplete lento	Pode ocorrer por limitação da rede ou do tempo de debounce. O código já implementa 400ms de atraso para otimizar chamadas.
-🧠 Conclusão
+| API                           | Descrição                                              | Endpoint                                                               |
+| ----------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------- |
+| **Search Address**            | Retorna endereços e locais com base em texto de busca. | `https://atlas.microsoft.com/search/address/json`                      |
+| **Map Control SDK**           | Renderiza e controla o mapa interativo.                | `https://atlas.microsoft.com/sdk/javascript/mapcontrol/3/atlas.min.js` |
+| **Geolocation API (Browser)** | Obtém a localização do usuário via GPS ou rede.        | `navigator.geolocation.getCurrentPosition()`                           |
 
+🧩 Possíveis dificuldades encontradas
+| **Dificuldade**                        | **Descrição / Solução**                                                                                                                 |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **Autenticação falhou**                | Ocorre se a chave do Azure Maps não for configurada corretamente. Verifique se foi copiada da aba **“Authentication”** do portal Azure. |
+| **Erro CORS (bloqueio de requisição)** | Pode acontecer ao abrir o arquivo diretamente. Solução: rodar um servidor local (ex: `npx http-server`).                                |
+| **Mapas não aparecem**                 | Verifique se o navegador permite execução de JavaScript e se o link do SDK está acessível.                                              |
+| **Geolocalização negada**              | O navegador precisa de permissão de acesso à localização. Habilitar em “Configurações → Privacidade → Localização”.                     |
+| **Autocomplete lento**                 | Pode ocorrer por limitação da rede ou do tempo de debounce. O código já implementa 400ms de atraso para otimizar chamadas.              |
+
+🧠 Conclusão
 Este POC demonstrou de forma prática como integrar o Azure Maps em uma aplicação web, incluindo renderização de mapas, busca de endereços e geolocalização em tempo real.
 A experiência mostra a facilidade de uso do serviço e sua aplicabilidade em sistemas logísticos, aplicativos de entrega, controle de frota ou qualquer projeto que envolva dados geográficos.
