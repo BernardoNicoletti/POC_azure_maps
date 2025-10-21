@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>POC - Azure Maps com Autocomplete</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- CSS do Azure Maps -->
+  <link rel="stylesheet" href="https://atlas.microsoft.com/sdk/javascript/mapcontrol/3/atlas.min.css">
+  
+  <!-- SDK do Azure Maps -->
+  <script src="https://atlas.microsoft.com/sdk/javascript/mapcontrol/3/atlas.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    #map {
+      width: 100%;
+      height: 100vh;
+    }
+
+    #searchContainer {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      background: white;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      width: 350px;
+    }
+
+    #searchInput {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 95%;
+    }
+
+    #suggestions {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: white;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .suggestion {
+      padding: 8px;
+      cursor: pointer;
+    }
+
+    .suggestion:hover {
+      background-color: #e6f2ff;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="searchContainer">
+    <input type="text" id="searchInput" placeholder="Digite um endereço..." autocomplete="off" />
+    <div id="suggestions"></div>
+  </div>
+
+  <div id="map"></div>
+
+ <script>
+  const subscriptionKey = "SUA_AZURE_MAPS_SUBSCRIPTION_KEY_AQUI";
+
+  const map = new atlas.Map("map", {
+    center: [-46.6333, -23.5505],
+    zoom: 12,
+    style: "road",
+    authOptions: {
+      authType: "subscriptionKey",
+      subscriptionKey: subscriptionKey
+    }
+  });
+
+  map.controls.add(new atlas.control.ZoomControl(), { position: "top-right" });
+  map.controls.add(new atlas.control.StyleControl(), { position: "top-left" });
+
+  const datasource = new atlas.source.DataSource();
+  map.events.add("ready", () => {
+    map.sources.add(datasource);
+    map.layers.add(new atlas.layer.SymbolLayer(datasource, null));
+  });
+
+  const searchInput = document.getElementById("searchInput");
+  const suggestionsDiv = document.getElementById("suggestions");
+  let debounceTimeout;
+
+  async function buscarSugestoes(query) {
+    const url = `https://atlas.microsoft.com/search/address/json?api-version=1.0&subscription-key=${subscriptionKey}&language=pt-BR&limit=5&query=${encodeURIComponent(query)}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data.results || [];
+  }
+
+  function mostrarSugestoes(sugestoes) {
+    suggestionsDiv.innerHTML = "";
+    if (sugestoes.length === 0) {
+      suggestionsDiv.style.display = "none";
+      return;
+    }
+
+    sugestoes.forEach(s => {
+      const div = document.createElement("div");
+      div.className = "suggestion";
+      div.textContent = s.address.freeformAddress;
+      div.addEventListener("click", () => selecionarEndereco(s));
+      suggestionsDiv.appendChild(div);
+    });
+
+    suggestionsDiv.style.display = "block";
+  }
+
+  function selecionarEndereco(result) {
+    const { lat, lon } = result.position;
+    datasource.clear();
+    datasource.add(new atlas.data.Point([lon, lat]));
+    map.setCamera({ center: [lon, lat], zoom: 15 });
+    searchInput.value = result.address.freeformAddress;
+    suggestionsDiv.style.display = "none";
+  }
+
+  searchInput.addEventListener("input", () => {
+    const query = searchInput.value.trim();
+    clearTimeout(debounceTimeout);
+
+    if (query.length < 3) {
+      suggestionsDiv.style.display = "none";
+      return;
+    }
+
+    debounceTimeout = setTimeout(async () => {
+      const results = await buscarSugestoes(query);
+      mostrarSugestoes(results);
+    }, 400);
+  });
+
+  document.addEventListener("click", e => {
+    if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+      suggestionsDiv.style.display = "none";
+    }
+  });
+
+  async function pegarMinhaLocalizacao() {
+    if (!navigator.geolocation) {
+      alert("Geolocalização não é suportada neste navegador.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const { latitude, longitude } = position.coords;
+
+        datasource.clear();
+        datasource.add(new atlas.data.Point([longitude, latitude]));
+
+        map.setCamera({ center: [longitude, latitude], zoom: 15 });
+
+        const htmlMarker = new atlas.HtmlMarker({
+          color: "DodgerBlue",
+          text: "📍",
+          position: [longitude, latitude],
+          popup: new atlas.Popup({
+            content: "<div style='padding:5px'>Você está aqui</div>"
+          })
+        });
+        map.markers.clear();
+        map.markers.add(htmlMarker);
+      },
+      error => {
+        alert("Não foi possível obter sua localização.");
+        console.error(error);
+      }
+    );
+  }
+
+  const btnLocalizacao = document.createElement("button");
+  btnLocalizacao.textContent = "📍 Pegar minha localização";
+  btnLocalizacao.style.cssText = `
+    position: absolute;
+    top: 10px;
+    right: 60px;
+    z-index: 1000;
+    background: #0078D4;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  `;
+  btnLocalizacao.addEventListener("click", pegarMinhaLocalizacao);
+  document.body.appendChild(btnLocalizacao);
+</script>
+
+</body>
+</html> 
