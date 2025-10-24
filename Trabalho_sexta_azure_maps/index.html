@@ -1,211 +1,399 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
-  <meta charset="UTF-8">
-  <title>POC - Azure Maps com Autocomplete</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>🌍 POC - Azure Maps com Autocomplete e Histórico</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- CSS do Azure Maps -->
-  <link rel="stylesheet" href="https://atlas.microsoft.com/sdk/javascript/mapcontrol/3/atlas.min.css">
-  
-  <!-- SDK do Azure Maps -->
-  <script src="https://atlas.microsoft.com/sdk/javascript/mapcontrol/3/atlas.min.js"></script>
+    <!-- CSS do Azure Maps -->
+    <link rel="stylesheet" href="https://atlas.microsoft.com/sdk/javascript/mapcontrol/3/atlas.min.css">
 
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-    }
+    <!-- SDK do Azure Maps -->
+    <script src="https://atlas.microsoft.com/sdk/javascript/mapcontrol/3/atlas.min.js"></script>
 
-    #map {
-      width: 100%;
-      height: 100vh;
-    }
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    #searchContainer {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 10;
-      background: white;
-      padding: 10px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      width: 350px;
-    }
-
-    #searchInput {
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      width: 95%;
-    }
-
-    #suggestions {
-      max-height: 200px;
-      overflow-y: auto;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background: white;
-      margin-top: 5px;
-      display: none;
-    }
-
-    .suggestion {
-      padding: 8px;
-      cursor: pointer;
-    }
-
-    .suggestion:hover {
-      background-color: #e6f2ff;
-    }
-  </style>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+        
+        #searchContainer {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            width: 350px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        #searchInput {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            width: 95%;
+            margin-bottom: 5px;
+        }
+        
+        #suggestions {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: white;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .suggestion {
+            padding: 8px;
+            cursor: pointer;
+        }
+        
+        .suggestion:hover {
+            background-color: #e6f2ff;
+        }
+        /* Botão histórico */
+        
+        #btnHistory {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1100;
+            background: #0078D4;
+            border: none;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #historyPanel {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            z-index: 1100;
+            width: 300px;
+            max-height: 400px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+            padding: 10px;
+            display: none;
+            flex-direction: column;
+        }
+        
+        #historyTitle {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+        
+        #historyList {
+            flex: 1;
+            max-height: 350px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: white;
+        }
+        
+        .historyItem {
+            padding: 8px 10px;
+            cursor: pointer;
+            font-size: 14px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .historyItem:hover {
+            background-color: #f0f8ff;
+        }
+    </style>
 </head>
+
 <body>
 
-  <div id="searchContainer">
-    <input type="text" id="searchInput" placeholder="Digite um endereço..." autocomplete="off" />
-    <div id="suggestions"></div>
-  </div>
+    <div id="searchContainer">
+        <input type="text" id="searchInput" placeholder="Digite um endereço..." autocomplete="off" />
+        <div id="suggestions"></div>
+    </div>
 
-  <div id="map"></div>
+    <div id="map"></div>
 
- <script>
-  const subscriptionKey = "SUA_AZURE_MAPS_SUBSCRIPTION_KEY_AQUI";
+    <!-- Botão para abrir/fechar histórico -->
+    <button id="btnHistory" title="Mostrar histórico">📜</button>
 
-  const map = new atlas.Map("map", {
-    center: [-49.0661, -26.9150],
-    zoom: 12,
-    style: "road",
-    authOptions: {
-      authType: "subscriptionKey",
-      subscriptionKey: subscriptionKey
-    }
-  });
+    <!-- Painel do histórico -->
+    <div id="historyPanel">
+        <div id="historyTitle">Histórico de Pesquisas</div>
+        <div id="historyList"></div>
+    </div>
 
-  map.controls.add(new atlas.control.ZoomControl(), { position: "top-right" });
-  map.controls.add(new atlas.control.StyleControl(), { position: "top-left" });
+    <script>
+        const subscriptionKey = "CHAVE_API_AZURE_MAPS";
 
-  const datasource = new atlas.source.DataSource();
-  map.events.add("ready", () => {
-    map.sources.add(datasource);
-    map.layers.add(new atlas.layer.SymbolLayer(datasource, null));
-  });
-
-  const searchInput = document.getElementById("searchInput");
-  const suggestionsDiv = document.getElementById("suggestions");
-  let debounceTimeout;
-
-  async function buscarSugestoes(query) {
-    const url = `https://atlas.microsoft.com/search/address/json?api-version=1.0&subscription-key=${subscriptionKey}&language=pt-BR&limit=5&query=${encodeURIComponent(query)}`;
-    const response = await fetch(url);
-    const data = await response.json();
-    return data.results || [];
-  }
-
-  function mostrarSugestoes(sugestoes) {
-    suggestionsDiv.innerHTML = "";
-    if (sugestoes.length === 0) {
-      suggestionsDiv.style.display = "none";
-      return;
-    }
-
-    sugestoes.forEach(s => {
-      const div = document.createElement("div");
-      div.className = "suggestion";
-      div.textContent = s.address.freeformAddress;
-      div.addEventListener("click", () => selecionarEndereco(s));
-      suggestionsDiv.appendChild(div);
-    });
-
-    suggestionsDiv.style.display = "block";
-  }
-
-  function selecionarEndereco(result) {
-    const { lat, lon } = result.position;
-    datasource.clear();
-    datasource.add(new atlas.data.Point([lon, lat]));
-    map.setCamera({ center: [lon, lat], zoom: 15 });
-    searchInput.value = result.address.freeformAddress;
-    suggestionsDiv.style.display = "none";
-  }
-
-  searchInput.addEventListener("input", () => {
-    const query = searchInput.value.trim();
-    clearTimeout(debounceTimeout);
-
-    if (query.length < 3) {
-      suggestionsDiv.style.display = "none";
-      return;
-    }
-
-    debounceTimeout = setTimeout(async () => {
-      const results = await buscarSugestoes(query);
-      mostrarSugestoes(results);
-    }, 400);
-  });
-
-  document.addEventListener("click", e => {
-    if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
-      suggestionsDiv.style.display = "none";
-    }
-  });
-
-  async function pegarMinhaLocalizacao() {
-    if (!navigator.geolocation) {
-      alert("Geolocalização não é suportada neste navegador.");
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        const { latitude, longitude } = position.coords;
-
-        datasource.clear();
-        datasource.add(new atlas.data.Point([longitude, latitude]));
-
-        map.setCamera({ center: [longitude, latitude], zoom: 15 });
-
-        const htmlMarker = new atlas.HtmlMarker({
-          color: "DodgerBlue",
-          text: "📍",
-          position: [longitude, latitude],
-          popup: new atlas.Popup({
-            content: "<div style='padding:5px'>Você está aqui</div>"
-          })
+        const map = new atlas.Map("map", {
+            center: [-49.0661, -26.9150],
+            zoom: 12,
+            style: "road",
+            authOptions: {
+                authType: "subscriptionKey",
+                subscriptionKey: subscriptionKey
+            }
         });
-        map.markers.clear();
-        map.markers.add(htmlMarker);
-      },
-      error => {
-        alert("Não foi possível obter sua localização.");
-        console.error(error);
-      }
-    );
-  }
 
-  const btnLocalizacao = document.createElement("button");
-  btnLocalizacao.textContent = "📍 Pegar minha localização";
-  btnLocalizacao.style.cssText = `
-    position: absolute;
-    top: 10px;
-    right: 60px;
-    z-index: 1000;
-    background: #0078D4;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 12px;
-    cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-  `;
-  btnLocalizacao.addEventListener("click", pegarMinhaLocalizacao);
-  document.body.appendChild(btnLocalizacao);
-</script>
+        map.controls.add(new atlas.control.ZoomControl(), {
+            position: "top-right"
+        });
+        map.controls.add(new atlas.control.StyleControl(), {
+            position: "top-left"
+        });
 
+        const datasource = new atlas.source.DataSource();
+        map.events.add("ready", () => {
+            map.sources.add(datasource);
+            map.layers.add(new atlas.layer.SymbolLayer(datasource, null));
+            loadHistory();
+        });
+
+        const searchInput = document.getElementById("searchInput");
+        const suggestionsDiv = document.getElementById("suggestions");
+        const historyList = document.getElementById("historyList");
+        const btnHistory = document.getElementById("btnHistory");
+        const historyPanel = document.getElementById("historyPanel");
+        let debounceTimeout;
+
+        async function buscarSugestoes(query) {
+            const url = `https://atlas.microsoft.com/search/address/json?api-version=1.0&subscription-key=${subscriptionKey}&language=pt-BR&limit=5&query=${encodeURIComponent(query)}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            return data.results || [];
+        }
+
+        function mostrarSugestoes(sugestoes) {
+            suggestionsDiv.innerHTML = "";
+            if (sugestoes.length === 0) {
+                suggestionsDiv.style.display = "none";
+                return;
+            }
+
+            sugestoes.forEach(s => {
+                const div = document.createElement("div");
+                div.className = "suggestion";
+                div.textContent = s.address.freeformAddress;
+                div.addEventListener("click", () => selecionarEndereco(s));
+                suggestionsDiv.appendChild(div);
+            });
+
+            suggestionsDiv.style.display = "block";
+        }
+
+        function salvarNoHistorico(endereco, position) {
+            if (!endereco || !position) return;
+
+            let history = JSON.parse(localStorage.getItem('locationHistory')) || [];
+
+            // Evitar duplicatas: remover se já existir
+            history = history.filter(h => h.address !== endereco);
+
+            // Adiciona no começo
+            history.unshift({
+                address: endereco,
+                position
+            });
+
+            // Limitar histórico a 10 itens
+            if (history.length > 10) {
+                history = history.slice(0, 10);
+            }
+
+            localStorage.setItem('locationHistory', JSON.stringify(history));
+            loadHistory();
+        }
+
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('locationHistory')) || [];
+            historyList.innerHTML = '';
+
+            if (history.length === 0) {
+                historyList.innerHTML = '<div style="padding:6px; font-size:13px; color:#666;">Nenhuma pesquisa recente.</div>';
+                return;
+            }
+
+            history.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'historyItem';
+                div.textContent = item.address;
+                div.title = item.address;
+                div.addEventListener('click', () => {
+                    // Centraliza no mapa ao clicar
+                    datasource.clear();
+                    datasource.add(new atlas.data.Point([item.position.lon, item.position.lat]));
+                    map.setCamera({
+                        center: [item.position.lon, item.position.lat],
+                        zoom: 15
+                    });
+                    searchInput.value = item.address;
+                    // Fecha o painel ao clicar no item
+                    toggleHistoryPanel(false);
+                });
+                historyList.appendChild(div);
+            });
+        }
+
+        function selecionarEndereco(result) {
+            const {
+                lat,
+                lon
+            } = result.position;
+            datasource.clear();
+            datasource.add(new atlas.data.Point([lon, lat]));
+            map.setCamera({
+                center: [lon, lat],
+                zoom: 15
+            });
+            searchInput.value = result.address.freeformAddress;
+            suggestionsDiv.style.display = "none";
+
+            salvarNoHistorico(result.address.freeformAddress, {
+                lat,
+                lon
+            });
+        }
+
+        searchInput.addEventListener("input", () => {
+            const query = searchInput.value.trim();
+            clearTimeout(debounceTimeout);
+
+            if (query.length < 3) {
+                suggestionsDiv.style.display = "none";
+                return;
+            }
+
+            debounceTimeout = setTimeout(async() => {
+                const results = await buscarSugestoes(query);
+                mostrarSugestoes(results);
+            }, 400);
+        });
+
+        document.addEventListener("click", e => {
+            if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+                suggestionsDiv.style.display = "none";
+            }
+        });
+
+        async function pegarMinhaLocalizacao() {
+            if (!navigator.geolocation) {
+                Swal.fire({
+                    title: 'Erro',
+                    text: '"Geolocalização não é suportada neste navegador."',
+                    icon: 'error',
+                    confirmButtonText: 'Fechar'
+                });
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    const {
+                        latitude,
+                        longitude
+                    } = position.coords;
+
+                    datasource.clear();
+                    datasource.add(new atlas.data.Point([longitude, latitude]));
+
+                    map.setCamera({
+                        center: [longitude, latitude],
+                        zoom: 15
+                    });
+
+                    const htmlMarker = new atlas.HtmlMarker({
+                        color: "DodgerBlue",
+                        text: "📍",
+                        position: [longitude, latitude],
+                        popup: new atlas.Popup({
+                            content: "<div style='padding:5px'>Você está aqui</div>"
+                        })
+                    });
+                    map.markers.clear();
+                    map.markers.add(htmlMarker);
+                },
+                error => {
+                    Swal.fire({
+                        title: 'Erro',
+                        text: 'Não foi possível obter sua localização.',
+                        icon: 'error',
+                        confirmButtonText: 'Fechar'
+                    });
+                }
+            );
+        }
+
+        const btnLocalizacao = document.createElement("button");
+        btnLocalizacao.textContent = "📍 Pegar minha localização";
+        btnLocalizacao.style.cssText = `
+        position: absolute;
+        top: 10px;
+        right: 60px;
+        z-index: 1000;
+        background: #0078D4;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 12px;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    `;
+        btnLocalizacao.addEventListener("click", pegarMinhaLocalizacao);
+        document.body.appendChild(btnLocalizacao);
+
+        // Função para abrir/fechar painel do histórico
+        function toggleHistoryPanel(show) {
+            if (typeof show === "boolean") {
+                historyPanel.style.display = show ? "flex" : "none";
+            } else {
+                historyPanel.style.display = historyPanel.style.display === "flex" ? "none" : "flex";
+            }
+        }
+
+        btnHistory.addEventListener("click", (e) => {
+            e.stopPropagation();
+            toggleHistoryPanel();
+        });
+
+        // Fecha o painel ao clicar fora do painel e do botão
+        document.addEventListener("click", (e) => {
+            if (!historyPanel.contains(e.target) && !btnHistory.contains(e.target)) {
+                toggleHistoryPanel(false);
+            }
+        });
+    </script>
 </body>
-</html> 
+
+</html>
