@@ -71,12 +71,9 @@ Crie um arquivo chamado index.html e insira o código abaixo:
 </html>
 
 
-🔑 Substitua o texto:
+🔑 Substitua a variável 'SUA_AZURE_MAPS_SUBSCRIPTION_KEY_AQUI', pela chave que você adquiriu no ambiente da Azure Maps:
 
 const subscriptionKey = "SUA_AZURE_MAPS_SUBSCRIPTION_KEY_AQUI";
-
-
-pela chave real obtida no Azure.
 
 3. Estrutura e funcionamento do POC
 
