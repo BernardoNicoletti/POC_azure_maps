@@ -22,40 +22,40 @@ O objetivo deste POC é demonstrar o uso do Microsoft Azure Maps, um serviço de
 
 🧩 Tecnologias utilizadas
 
-HTML5 e CSS3 – para estrutura e estilo da página;
+  &rarr; HTML5 e CSS3 – para estrutura e estilo da página;
 
-JavaScript (ES6) – para integração com as APIs REST do Azure Maps;
+  &rarr; JavaScript (ES6) – para integração com as APIs REST do Azure Maps;
 
-Azure Maps SDK for Web (v3) – para renderização do mapa e autenticação via chave;
+  &rarr; Azure Maps SDK for Web (v3) – para renderização do mapa e autenticação via chave;
 
-API Search Address – para sugestões de endereços (autocomplete);
+  &rarr; API Search Address – para sugestões de endereços (autocomplete);
 
-API de Geolocalização do navegador – para detectar a posição atual do usuário.
+  &rarr; API de Geolocalização do navegador – para detectar a posição atual do usuário.
 
 🪜 Passos do Desenvolvimento (Tutorial)
 1. Criação da conta no Azure
 
-Acesse o portal: https://portal.azure.com
+  &rarr; Acesse o portal: https://portal.azure.com
 
-Crie uma conta gratuita (ou use uma existente).
+  &rarr; Crie uma conta gratuita (ou use uma existente).
 
-No painel principal, pesquise por “Azure Maps Accounts”.
+  &rarr; No painel principal, pesquise por “Azure Maps Accounts”.
 
-Clique em “+ Criar” e configure:
+  &rarr; Clique em “+ Criar” e configure:
 
-Nome do recurso (ex: poc-azure-maps);
+  &rarr; Nome do recurso (ex: poc-azure-maps);
 
-Grupo de recursos (pode ser um novo);
+  &rarr; Grupo de recursos (pode ser um novo);
 
-Região (ex: Brazil South);
+  &rarr; Região (ex: Brazil South);
 
-Plano de preço: S0 (padrão) ou gratuito.
+  &rarr; Plano de preço: S0 (padrão) ou gratuito.
 
-Após criar, vá até o recurso e copie a Subscription Key (chave primária).
+ &rarr; Após criar, vá até o recurso e copie a Subscription Key (chave primária).
 
 2. Montagem do ambiente
 
-Crie um arquivo chamado index.html e insira o código abaixo:
+  &rarr; Crie um arquivo chamado index.html e insira o código abaixo:
 
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -71,39 +71,41 @@ Crie um arquivo chamado index.html e insira o código abaixo:
 </html>
 
 
-🔑 Substitua a variável 'SUA_AZURE_MAPS_SUBSCRIPTION_KEY_AQUI', pela chave que você adquiriu no ambiente da Azure Maps:
+🔑 &rarr; Substitua a variável 'SUA_AZURE_MAPS_SUBSCRIPTION_KEY_AQUI', pela chave que você adquiriu no ambiente da Azure Maps:
 
 const subscriptionKey = "SUA_AZURE_MAPS_SUBSCRIPTION_KEY_AQUI";
 
 3. Estrutura e funcionamento do POC
 
-O mapa é inicializado centralizado em São Paulo (−23.5505, −46.6333).
+  &rarr; O mapa é inicializado centralizado em São Paulo (−23.5505, −46.6333).
 
-Um campo de texto permite digitar endereços — conforme o usuário digita, são feitas chamadas à API de busca de endereços (search/address/json) retornando sugestões automáticas.
+  &rarr; Um campo de texto permite digitar endereços — conforme o usuário digita, são feitas chamadas à API de busca de endereços (search/address/json) retornando sugestões automáticas.
 
-Ao clicar em uma sugestão, o mapa é reposicionado para o endereço escolhido e exibe um marcador no local.
+  &rarr; Ao clicar em uma sugestão, o mapa é reposicionado para o endereço escolhido e exibe um marcador no local.
 
-O botão “📍 Pegar minha localização” utiliza a API de geolocalização do navegador para identificar a posição atual do usuário e exibi-la no mapa.
+  &rarr; O botão “📍 Pegar minha localização” utiliza a API de geolocalização do navegador para identificar a posição atual do usuário e exibi-la no mapa.
 
 4. Execução
 
-&rarr; Salve o arquivo como index.html.
+  &rarr; Salve o arquivo como index.html.
 
--> Abra o arquivo em um navegador moderno (Edge, Chrome ou Firefox).
+  &rarr; Abra o arquivo em um navegador moderno (Edge, Chrome ou Firefox).
 
--> Permita o acesso à localização, caso solicitado.
+  &rarr; Permita o acesso à localização, caso solicitado.
 
--> Teste digitando endereços no campo de busca (ex: “Avenida Paulista”).
+  &rarr; Teste digitando endereços no campo de busca (ex: “Avenida Paulista”).
 
 5. Resultados esperados
 
-O mapa é carregado corretamente.
+  &rarr; O mapa é carregado corretamente.
 
-Ao digitar um endereço, aparecem sugestões automáticas.
+  &rarr; Ao digitar um endereço, aparecem sugestões automáticas.
 
-Ao selecionar uma sugestão, o mapa foca na localização e exibe um marcador.
+  &rarr; Ao selecionar uma sugestão, o mapa foca na localização e exibe um marcador.
 
-Ao clicar em “📍 Pegar minha localização”, o mapa centraliza na posição atual do usuário.
+  &rarr; Ao clicar em “📍 Pegar minha localização”, o mapa centraliza na posição atual do usuário.
+
+  &rarr; Para cada endereço selecionado, o mesmo irá para dentro do histórico de endereços.
 
 ⚙️ Principais APIs utilizadas
 | API                           | Descrição                                              | Endpoint                                                               |
