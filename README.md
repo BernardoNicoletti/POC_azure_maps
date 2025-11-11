@@ -87,7 +87,7 @@ O botão “📍 Pegar minha localização” utiliza a API de geolocalização 
 
 4. Execução
 
--> Salve o arquivo como index.html.
+&rarr; Salve o arquivo como index.html.
 
 -> Abra o arquivo em um navegador moderno (Edge, Chrome ou Firefox).
 
