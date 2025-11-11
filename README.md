@@ -123,6 +123,6 @@ const subscriptionKey = "SUA_AZURE_MAPS_SUBSCRIPTION_KEY_AQUI";
 | **Geolocalização negada**              | O navegador precisa de permissão de acesso à localização. Habilitar em “Configurações → Privacidade → Localização”.                     |
 | **Autocomplete lento**                 | Pode ocorrer por limitação da rede ou do tempo de debounce. O código já implementa 400ms de atraso para otimizar chamadas.              |
 
-🧠 Conclusão
+🧠 Conclusão <br> 
 Este POC demonstrou de forma prática como integrar o Azure Maps em uma aplicação web, incluindo renderização de mapas, busca de endereços e geolocalização em tempo real.
 A experiência mostra a facilidade de uso do serviço e sua aplicabilidade em sistemas logísticos, aplicativos de entrega, controle de frota ou qualquer projeto que envolva dados geográficos.
