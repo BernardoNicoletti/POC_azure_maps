@@ -87,13 +87,13 @@ O botão “📍 Pegar minha localização” utiliza a API de geolocalização 
 
 4. Execução
 
-Salve o arquivo como index.html.
+-> Salve o arquivo como index.html.
 
-Abra o arquivo em um navegador moderno (Edge, Chrome ou Firefox).
+-> Abra o arquivo em um navegador moderno (Edge, Chrome ou Firefox).
 
-Permita o acesso à localização, caso solicitado.
+-> Permita o acesso à localização, caso solicitado.
 
-Teste digitando endereços no campo de busca (ex: “Avenida Paulista”).
+-> Teste digitando endereços no campo de busca (ex: “Avenida Paulista”).
 
 5. Resultados esperados
 
